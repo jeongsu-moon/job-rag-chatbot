@@ -8,3 +8,4 @@ data/*.json
 evaluation/results.json
 experiments/*.json
 .claude/
+node_modules/

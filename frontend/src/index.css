@@ -1,0 +1,29 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap');
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  
+  --color-brand-primary: #0a0a0a;
+  --color-brand-accent: #3b82f6;
+}
+
+@layer base {
+  body {
+    @apply bg-[#f8fafc] text-slate-900 font-sans antialiased;
+  }
+}
+
+.chat-scroll-area::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-scroll-area::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full;
+}
+
