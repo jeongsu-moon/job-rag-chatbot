@@ -1,0 +1,10 @@
+.env
+__pycache__/
+chroma_db/
+data/*.json
+!data/.gitkeep
+*.pyc
+.venv/
+evaluation/results.json
+experiments/*.json
+.claude/
