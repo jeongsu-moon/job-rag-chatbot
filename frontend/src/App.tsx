@@ -17,10 +17,10 @@ interface Message {
 }
 
 const EXAMPLES = [
-  '백엔드 공고에서 가장 많이 요구하는 기술 분석해줘',
-  '주니어 채용에서 필수 vs 우대 스킬 차이 정리해줘',
-  '원격 근무 가능한 개발 포지션 비율이 어떻게 돼?',
-  '요즘 채용 공고에 AI 관련 요구사항이 얼마나 들어가?',
+  'Python 백엔드 개발자 채용 공고 알려줘',
+  'AI 엔지니어에게 요구하는 기술 스택은?',
+  'FastAPI 경험을 요구하는 회사는?',
+  '경력 1~3년차가 지원할 수 있는 공고는?',
 ];
 
 export default function App() {
@@ -127,7 +127,7 @@ export default function App() {
             <h3 className="text-sm font-bold text-white">JobBot</h3>
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] text-emerald-400 font-semibold">online</span>
+              <span className="text-[10px] text-emerald-400 font-semibold">온라인</span>
             </div>
           </div>
         </div>
