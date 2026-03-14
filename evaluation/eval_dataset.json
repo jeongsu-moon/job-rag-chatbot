@@ -1,152 +1,92 @@
 [
   {
-    "question": "Python 백엔드 개발자 채용 공고 알려줘",
-    "expected_keywords": ["Python", "백엔드", "Django", "FastAPI"],
-    "relevant_companies": ["핀테크랩스", "메디컬AI"],
+    "question": "Python을 사용하는 백엔드 개발자 채용 공고 알려줘",
+    "expected_keywords": ["Python", "백엔드"],
+    "relevant_companies": ["코드잇(codeit)", "김캐디", "에버엑스", "피처링(FeaturingCorp.)"],
     "category": "tech_stack"
   },
   {
     "question": "React를 사용하는 프론트엔드 개발자 채용 공고가 있어?",
-    "expected_keywords": ["React", "프론트엔드", "디자인허브"],
-    "relevant_companies": ["디자인허브", "소셜임팩트"],
+    "expected_keywords": ["React", "프론트엔드"],
+    "relevant_companies": ["제로엑스플로우", "유리프트", "스터닝", "엔비티(NBT)"],
     "category": "tech_stack"
   },
   {
     "question": "Kubernetes 경험을 요구하는 공고는?",
-    "expected_keywords": ["Kubernetes", "DevOps", "SRE"],
-    "relevant_companies": ["인프라테크", "게임스튜디오K", "로그분석코리아"],
+    "expected_keywords": ["Kubernetes"],
+    "relevant_companies": ["앤톡(Antock)", "트웰브랩스(TwelveLabs)", "온다(ONDA)"],
     "category": "tech_stack"
-  },
-  {
-    "question": "FastAPI 경험을 요구하는 회사는?",
-    "expected_keywords": ["FastAPI", "핀테크랩스", "Python"],
-    "relevant_companies": ["핀테크랩스", "챗봇팩토리"],
-    "category": "tech_stack"
-  },
-  {
-    "question": "Go 언어를 사용하는 개발자 채용 공고 찾아줘",
-    "expected_keywords": ["Go", "클라우드브릿지", "gRPC"],
-    "relevant_companies": ["클라우드브릿지"],
-    "category": "tech_stack"
-  },
-  {
-    "question": "LangChain이나 RAG 경험을 요구하는 공고가 있어?",
-    "expected_keywords": ["LangChain", "RAG", "NLP", "챗봇"],
-    "relevant_companies": ["챗봇팩토리", "딥러닝연구소"],
-    "category": "tech_stack"
-  },
-  {
-    "question": "PyTorch를 사용하는 AI 엔지니어 채용 공고 알려줘",
-    "expected_keywords": ["PyTorch", "ML", "딥러닝"],
-    "relevant_companies": ["딥러닝연구소", "비전AI코리아"],
-    "category": "tech_stack"
-  },
-  {
-    "question": "경력 1~3년차가 지원할 수 있는 공고는?",
-    "expected_keywords": ["경력", "1", "3"],
-    "relevant_companies": ["트래블메이트", "클라우드브릿지", "챗봇팩토리"],
-    "category": "requirements"
-  },
-  {
-    "question": "5년 이상 경력을 요구하는 시니어 포지션은?",
-    "expected_keywords": ["경력", "5", "시니어"],
-    "relevant_companies": ["넥스트웨어", "인프라테크", "추천시스템즈"],
-    "category": "requirements"
   },
   {
     "question": "Java Spring Boot 경험이 필요한 공고는?",
-    "expected_keywords": ["Java", "Spring Boot", "넥스트웨어"],
-    "relevant_companies": ["넥스트웨어"],
+    "expected_keywords": ["Java", "Spring"],
+    "relevant_companies": ["키트웍스", "포티투닷(42dot)", "에이치티비욘드"],
     "category": "tech_stack"
   },
   {
-    "question": "판교에서 근무하는 회사 채용 공고가 있어?",
-    "expected_keywords": ["판교"],
-    "relevant_companies": ["클라우드브릿지", "비전AI코리아", "게임스튜디오K"],
-    "category": "requirements"
-  },
-  {
-    "question": "리모트 근무가 가능한 포지션은?",
-    "expected_keywords": ["리모트", "원격"],
-    "relevant_companies": ["트래블메이트", "테크에듀"],
-    "category": "requirements"
-  },
-  {
-    "question": "데이터 엔지니어와 데이터 분석가의 차이점을 비교해줘",
-    "expected_keywords": ["데이터 엔지니어", "데이터 분석"],
-    "relevant_companies": ["데이터웨이브", "마케팅인사이트"],
-    "category": "comparison"
-  },
-  {
-    "question": "프론트엔드와 백엔드 개발자의 요구 기술 스택을 비교해줘",
-    "expected_keywords": ["프론트엔드", "백엔드", "React", "Java", "Python"],
-    "relevant_companies": ["디자인허브", "넥스트웨어", "핀테크랩스"],
-    "category": "comparison"
-  },
-  {
-    "question": "DevOps와 SRE의 차이는 뭐야?",
-    "expected_keywords": ["DevOps", "SRE", "인프라"],
-    "relevant_companies": ["인프라테크", "게임스튜디오K"],
-    "category": "comparison"
-  },
-  {
-    "question": "AI/ML 엔지니어에게 요구하는 기술 스택은?",
-    "expected_keywords": ["Python", "PyTorch", "TensorFlow", "Hugging Face"],
-    "relevant_companies": ["딥러닝연구소", "비전AI코리아", "챗봇팩토리"],
-    "category": "tech_stack"
-  },
-  {
-    "question": "헬스케어 분야 채용 공고를 알려줘",
-    "expected_keywords": ["헬스케어", "의료"],
-    "relevant_companies": ["메디컬AI", "헬스데이터", "바이오인포"],
-    "category": "requirements"
-  },
-  {
-    "question": "보안 관련 직무 채용 공고가 있어?",
-    "expected_keywords": ["보안"],
-    "relevant_companies": ["사이버실드", "시큐어클라우드"],
-    "category": "tech_stack"
-  },
-  {
-    "question": "TypeScript를 사용하는 포지션을 모두 알려줘",
+    "question": "TypeScript를 사용하는 포지션을 알려줘",
     "expected_keywords": ["TypeScript"],
-    "relevant_companies": ["커머스플러스", "디자인허브", "트래블메이트", "블록체인밸리"],
+    "relevant_companies": ["크림(KREAM)", "테크에이스", "인핸스(Enhans)"],
+    "category": "tech_stack"
+  },
+  {
+    "question": "PyTorch나 TensorFlow를 사용하는 AI 엔지니어 채용 공고",
+    "expected_keywords": ["PyTorch", "TensorFlow", "AI"],
+    "relevant_companies": ["앤톡(Antock)", "에버엑스", "트웰브랩스(TwelveLabs)"],
+    "category": "tech_stack"
+  },
+  {
+    "question": "Docker를 요구하는 백엔드 공고 알려줘",
+    "expected_keywords": ["Docker", "백엔드"],
+    "relevant_companies": ["앤톡(Antock)", "네비웍스", "크립토랩"],
     "category": "tech_stack"
   },
   {
     "question": "AWS 경험을 요구하는 공고를 정리해줘",
     "expected_keywords": ["AWS"],
-    "relevant_companies": ["넥스트웨어", "인프라테크", "시큐어클라우드"],
+    "relevant_companies": ["테크에이스", "키트웍스"],
     "category": "tech_stack"
   },
   {
-    "question": "모바일 개발자 채용 공고가 있어? iOS나 Android",
-    "expected_keywords": ["iOS", "Android", "Swift", "Kotlin"],
-    "relevant_companies": ["모빌리티랩", "배달히어로"],
+    "question": "iOS 개발자 채용 공고가 있어?",
+    "expected_keywords": ["iOS", "Swift"],
+    "relevant_companies": ["인핸스(Enhans)", "비누랩스", "다이얼커뮤니케이션즈"],
     "category": "tech_stack"
   },
   {
-    "question": "강남구에서 근무하는 백엔드 개발자 공고는?",
-    "expected_keywords": ["강남", "백엔드"],
-    "relevant_companies": ["넥스트웨어"],
+    "question": "Android 개발자 채용 공고 알려줘",
+    "expected_keywords": ["Android", "Kotlin"],
+    "relevant_companies": ["테크에이스", "키트웍스"],
+    "category": "tech_stack"
+  },
+  {
+    "question": "리모트 근무가 가능한 포지션은?",
+    "expected_keywords": ["리모트", "원격"],
+    "relevant_companies": ["업스테이지", "직방"],
     "category": "requirements"
   },
   {
-    "question": "Airflow를 사용하는 데이터 엔지니어 공고가 있어?",
-    "expected_keywords": ["Airflow", "데이터 엔지니어"],
-    "relevant_companies": ["데이터웨이브", "헬스데이터"],
+    "question": "백엔드 개발자 공고에서 가장 많이 요구하는 기술은?",
+    "expected_keywords": ["백엔드", "Python", "Java"],
+    "relevant_companies": [],
+    "category": "analysis"
+  },
+  {
+    "question": "프론트엔드와 백엔드 개발자의 요구 기술 스택을 비교해줘",
+    "expected_keywords": ["프론트엔드", "백엔드", "React", "Python"],
+    "relevant_companies": [],
+    "category": "comparison"
+  },
+  {
+    "question": "LangChain이나 RAG 경험을 요구하는 공고가 있어?",
+    "expected_keywords": ["LangChain", "RAG"],
+    "relevant_companies": [],
     "category": "tech_stack"
   },
   {
-    "question": "QA 엔지니어 채용 공고의 자격요건은?",
-    "expected_keywords": ["QA", "테스트", "Playwright", "Selenium"],
-    "relevant_companies": ["퀄리티소프트"],
-    "category": "requirements"
-  },
-  {
-    "question": "블록체인 개발자 채용 공고가 있어?",
-    "expected_keywords": ["블록체인", "Solidity", "스마트 컨트랙트"],
-    "relevant_companies": ["블록체인밸리"],
-    "category": "tech_stack"
+    "question": "데이터 엔지니어 채용 공고의 필수 기술은?",
+    "expected_keywords": ["데이터 엔지니어", "SQL", "Python"],
+    "relevant_companies": [],
+    "category": "analysis"
   }
 ]

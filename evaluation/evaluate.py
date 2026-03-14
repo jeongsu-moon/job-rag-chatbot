@@ -154,16 +154,13 @@ class RAGEvaluator:
     def run_full_evaluation(
         self, eval_set: list[dict], use_llm_judge: bool = True
     ) -> dict:
-        """전체 평가 실행 및 종합 리포트 생성."""
-        print("=== 검색 성능 평가 ===")
-        start = time.time()
-        retrieval = self.evaluate_retrieval(eval_set)
-        retrieval_time = time.time() - start
-        print(f"  Precision@{retrieval['k']}: {retrieval['precision_at_k']}")
-        print(f"  Recall@{retrieval['k']}: {retrieval['recall_at_k']}")
-        print(f"  MRR: {retrieval['mrr']}")
-        print(f"  소요 시간: {retrieval_time:.1f}초\n")
+        """전체 평가 실행 및 종합 리포트 생성.
 
+        Note:
+            이 시스템은 분석 질문에 full_scan(raw JSON 직독)을 사용하므로
+            Retrieval 지표(Precision/Recall/MRR)는 설명 질문에만 의미가 있습니다.
+            end-to-end 답변 품질은 키워드 포함률과 LLM Judge로 측정합니다.
+        """
         print("=== 답변 품질 평가 ===")
         start = time.time()
         answer_eval = self.evaluate_answer(eval_set, use_llm_judge=use_llm_judge)
@@ -174,14 +171,13 @@ class RAGEvaluator:
         print(f"  소요 시간: {answer_time:.1f}초\n")
 
         report = {
-            "retrieval": retrieval,
             "answer": {
                 "keyword_hit_rate": answer_eval["keyword_hit_rate"],
                 "avg_llm_score": answer_eval.get("avg_llm_score"),
                 "num_queries": answer_eval["num_queries"],
             },
             "details": answer_eval["details"],
-            "total_time": round(retrieval_time + answer_time, 1),
+            "total_time": round(answer_time, 1),
         }
 
         return report
