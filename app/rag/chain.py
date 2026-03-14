@@ -226,6 +226,21 @@ class RAGChain:
         q = question.lower()
         return any(p in q for p in self.EXPLANATION_PATTERNS)
 
+    # 통계/분석 질문 패턴 — 전체 데이터가 필요한 질문
+    ANALYSIS_PATTERNS = [
+        "top", "상위", "순위", "몇 위",
+        "가장 많이", "가장 많은", "제일 많이",
+        "비율", "몇 %", "퍼센트",
+        "분석", "트렌드", "통계",
+        "필수 기술", "요구 기술", "기술 스택 분석",
+        "차이 정리", "비교 분석",
+    ]
+
+    def _is_analysis_question(self, question: str) -> bool:
+        """통계/트렌드 분석 질문인지 판별합니다. Full Scan이 필요한 질문."""
+        q = question.lower()
+        return any(p in q for p in self.ANALYSIS_PATTERNS)
+
     def _full_scan_docs(self, keyword: str | None = None, experience_level: str | None = None) -> list[tuple[Document, float]]:
         """원본 JSON에서 공고를 직접 읽어 반환. keyword가 있으면 title로 필터링."""
         import json
@@ -281,16 +296,17 @@ class RAGChain:
         full_scan: bool = False, history: list[dict] | None = None,
     ) -> dict:
         """RAG 체인 실행. 답변 + 소스 + 컨텍스트 반환."""
-        if full_scan and not self._is_explanation_question(question):
+        if full_scan and self._is_analysis_question(question):
+            # 통계/분석 → Full Scan (정확한 카운팅을 위해 전체 데이터 필요)
             keyword = self._extract_job_category(question)
             experience_level = self._extract_experience_level(question)
             docs = self._full_scan_docs(keyword=keyword, experience_level=experience_level)
-            # 필터 없이 전체 스캔이면 RAG로 폴백 (토큰 초과 방지)
             if not keyword and not experience_level and len(docs) > 80:
                 doc_scores = self._retrieve_and_rerank(question, top_k, use_reranker)
             else:
                 doc_scores = docs
         else:
+            # 특정 공고 검색 / 개념 설명 → RAG
             doc_scores = self._retrieve_and_rerank(question, top_k, use_reranker)
         context, total_jobs = self._format_context(doc_scores)
         sources = self._build_sources(doc_scores)
@@ -312,7 +328,8 @@ class RAGChain:
         full_scan: bool = False, history: list[dict] | None = None,
     ) -> Generator[str, None, None]:
         """스트리밍 응답."""
-        if full_scan and not self._is_explanation_question(question):
+        if full_scan and self._is_analysis_question(question):
+            # 통계/분석 → Full Scan
             keyword = self._extract_job_category(question)
             experience_level = self._extract_experience_level(question)
             docs = self._full_scan_docs(keyword=keyword, experience_level=experience_level)
@@ -321,6 +338,7 @@ class RAGChain:
             else:
                 doc_scores = docs
         else:
+            # 특정 공고 검색 / 개념 설명 → RAG
             doc_scores = self._retrieve_and_rerank(question, top_k, use_reranker)
         context, total_jobs = self._format_context(doc_scores)
 
