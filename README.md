@@ -1,190 +1,127 @@
-# 💼 채용 공고 RAG 챗봇
+# JobBot — 채용 공고 RAG 챗봇
 
-> 채용 공고 데이터를 기반으로 질문에 답변하는 RAG(Retrieval-Augmented Generation) 챗봇
+> 원티드 실제 채용 공고 500개를 기반으로 기술 트렌드를 분석하고 질문에 답하는 AI 챗봇
 
-## 프로젝트 소개
-
-취업 준비 중 수많은 채용 공고를 일일이 비교하고 분석하는 것은 시간이 많이 소요됩니다. 이 프로젝트는 채용 공고 데이터를 벡터 DB에 저장하고, 하이브리드 검색과 LLM을 결합하여 자연어 질문에 정확한 답변을 제공하는 RAG 시스템입니다.
-
-**주요 기능:**
-- 채용 공고 데이터 자동 수집 및 벡터화
-- 하이브리드 검색 (Vector + BM25) 기반 정확한 문서 검색
-- LLM Reranker를 통한 검색 결과 품질 향상
-- Streamlit 기반 대화형 채팅 UI
-
-## 데모
-
-<!-- 스크린샷 추가 예정 -->
 <p align="center">
-  <img src="screenshots/chat_demo.png" alt="채팅 데모" width="800">
+  <img src="screenshots/demo.png" alt="JobBot 데모" width="900">
 </p>
 
-**사용 예시:**
+---
+
+## 주요 기능
+
+- **채용 트렌드 분석** — "백엔드 공고에서 가장 많이 요구하는 기술은?" → TOP 10 + 진행막대 통계
+- **직군/경력 필터링** — 프론트엔드, 주니어, 시니어 등 조건별 분석
+- **기술 개념 설명** — "Docker가 뭐야?" → 채용 시장 데이터 기반 설명
+- **멀티턴 대화** — "그럼 프론트엔드는?" 같은 후속 질문 맥락 유지
+- **스트리밍 응답** — SSE로 타이핑 효과 실시간 출력
+
+---
+
+## 기술 스택
+
+| 분류 | 기술 |
+|------|------|
+| API 서버 | FastAPI, Uvicorn |
+| RAG 파이프라인 | LangChain LCEL |
+| 벡터 저장소 | ChromaDB + OpenAI `text-embedding-3-small` |
+| 검색 | Hybrid Search (Vector + BM25) + RRF + Reranker |
+| LLM | GPT-4o-mini |
+| 프론트엔드 | React + TypeScript + Vite + Spline 3D |
+| 스트리밍 | SSE (Server-Sent Events) |
+| 테스트/CI | pytest + GitHub Actions |
+
+---
+
+## RAG 아키텍처
+
 ```
-사용자: Python 백엔드 개발자 채용 공고 알려줘
-챗봇: 현재 검색된 공고 중 Python 백엔드 개발자 관련 공고입니다:
-      1. 메디컬AI - 백엔드 개발자 (Django) / 경력 3~6년
-      2. 핀테크랩스 - 서버 개발자 (Python/FastAPI) / 경력 2~5년
-      ...
+사용자 질문
+    │
+    ├─ 분석 질문? (백엔드 기술 분석해줘)
+    │       └─ Full Scan — raw JSON 직독 + 직군/경력 필터링 → LLM
+    │
+    └─ 설명 질문? (Docker가 뭐야?)
+            └─ Hybrid Retrieval
+                    ├─ Vector Search (ChromaDB)
+                    └─ BM25 Keyword Search
+                            └─ RRF 점수 합산 → Reranker → LLM
 ```
 
-## 아키텍처
+**Full Scan을 쓰는 이유**: 벡터 검색은 일부 문서만 가져와서 "62개 중 30개" 같은 정확한 통계를 낼 수 없음. 분석 질문은 전체 데이터를 직접 읽어 LLM에 전달하는 방식으로 설계.
 
-```mermaid
-graph LR
-    A[채용 공고 데이터] --> B[문서 로더]
-    B --> C[시맨틱 청킹]
-    C --> D[OpenAI 임베딩]
-    D --> E[ChromaDB]
-
-    F[사용자 질문] --> G[하이브리드 검색]
-    E --> G
-    C --> H[BM25 인덱스]
-    H --> G
-
-    G --> I[RRF 점수 결합]
-    I --> J[LLM Reranker]
-    J --> K[LLM 답변 생성]
-    K --> L[Streamlit UI]
-```
-
-**데이터 흐름:**
-1. **수집**: 채용 공고 JSON 로드
-2. **청킹**: 시맨틱 전략으로 섹션별 분할 (주요업무, 자격요건, 우대사항 등)
-3. **임베딩**: OpenAI `text-embedding-3-small`로 벡터화
-4. **저장**: ChromaDB에 영속 저장
-5. **검색**: Vector + BM25 하이브리드 검색 → RRF 점수 결합
-6. **재정렬**: LLM Reranker로 관련성 재평가
-7. **생성**: GPT-4o-mini로 답변 생성
+---
 
 ## 기술적 의사결정
 
-| 결정 사항 | 선택 | 대안 | 선택 이유 |
-|-----------|------|------|-----------|
-| 벡터 DB | ChromaDB | Pinecone, Weaviate | 로컬 실행 가능, 설정 간편, 무료 |
-| 청킹 전략 | Semantic (섹션 기반) | Recursive, Fixed | 채용 공고 구조(주요업무/자격요건/우대사항)를 활용한 의미 있는 분할 |
-| 검색 방식 | Hybrid (Vector + BM25) | Vector-only | 키워드 매칭(BM25)이 기술 스택 검색에서 의미 검색을 보완 |
-| 점수 결합 | RRF (Reciprocal Rank Fusion) | 단순 병합 | 서로 다른 스케일의 점수를 순위 기반으로 안정적으로 결합 |
-| Reranker | LLM-based (GPT-4o-mini) | Cross-Encoder | 별도 모델 없이 LLM으로 관련성 평가, 배포 간편 |
-| LLM | GPT-4o-mini (API) / Ollama (Local) | GPT-4o | 비용 효율적이면서 한국어 성능 우수, 로컬 모드로 무료 전환 가능 |
-| 임베딩 | text-embedding-3-small | text-embedding-3-large | 비용 대비 성능 충분, 채용 공고 도메인에서 large 대비 차이 미미 |
+| 결정 | 선택 | 선택 이유 |
+|------|------|-----------|
+| 검색 방식 | Hybrid (Vector + BM25) | 키워드 매칭(BM25)이 기술 스택 검색에서 의미 검색을 보완 |
+| 점수 결합 | RRF | 서로 다른 스케일의 점수를 순위 기반으로 안정적으로 결합 |
+| 청킹 전략 | Semantic (섹션 기반) | 채용 공고 구조(자격요건/우대사항/주요업무)를 활용한 의미 있는 분할 |
+| 분석 라우팅 | Full Scan | 정확한 통계를 위해 벡터 검색 대신 전체 데이터 직독 |
+| 벡터 DB | ChromaDB | 로컬 실행, 무료, 메타데이터 필터링 지원 |
 
-## 실험 결과
+---
 
-### 청킹 전략 비교
+## 평가 결과
 
-| 전략 | chunk_size | 청크 수 | 평균 길이 | 특징 |
-|------|-----------|---------|----------|------|
-| recursive | 500 | 60 | 295자 | 범용적이나 섹션 경계 무시 |
-| **semantic** | 500 | 300 | 55자 | 섹션별 분할, 메타데이터 풍부 |
-| fixed | 500 | 60 | 296자 | 베이스라인 |
+15개 질문 기반 end-to-end 답변 품질 평가 (`evaluation/eval_dataset.json`)
 
-### 검색 성능
+| 지표 | 결과 | 설명 |
+|------|------|------|
+| 키워드 포함률 | **76.7%** | 예상 키워드가 답변에 포함된 비율 |
+| LLM Judge 평균 | **3.67 / 5.0** | GPT-4o-mini가 채점한 답변 품질 |
 
-<!-- 평가 실행 후 결과로 업데이트 예정 -->
-
-| 지표 | 값 |
-|------|-----|
-| Precision@5 | - |
-| Recall@5 | - |
-| MRR | - |
-| 키워드 포함률 | - |
-| LLM Judge 평균 | - |
-
-## 개선 과정
-
-| 버전 | 구현 내용 | 개선점 |
-|------|----------|--------|
-| v1 | 기본 벡터 검색 + LLM | 키워드 검색 누락 (예: "FastAPI" 정확 매칭 실패) |
-| v2 | + BM25 하이브리드 검색 | 키워드 매칭 개선, RRF로 점수 결합 |
-| v3 | + 시맨틱 청킹 | 섹션별 분할로 검색 정밀도 향상 |
-| v4 | + LLM Reranker | 관련성 높은 문서 우선 배치 |
+---
 
 ## 실행 방법
 
-### Docker (권장)
-
 ```bash
-# 1. 환경 변수 설정
-cp .env.example .env
-# .env 파일에 OPENAI_API_KEY 입력
-
-# 2. 실행
-docker-compose up --build
-
-# API: http://localhost:8000/docs
-# UI:  http://localhost:8501
-```
-
-### 로컬 개발
-
-```bash
-# 1. 환경 설정
-conda create -n job-rag-chatbot python=3.12 -y
-conda activate job-rag-chatbot
+# 1. 의존성 설치
 pip install -r requirements.txt
 
-# 2. 환경 변수
+# 2. 환경 변수 설정
 cp .env.example .env
-# .env 파일에 OPENAI_API_KEY 입력
+# OPENAI_API_KEY 입력
 
 # 3. 데이터 인제스트
 python -m app.ingestion.ingest
 
-# 4. 서버 실행
-python -m app.main
+# 4. 백엔드 실행
+uvicorn app.main:app --reload
 
-# 5. UI 실행 (별도 터미널)
-streamlit run frontend/streamlit_app.py
+# 5. 프론트엔드 실행 (별도 터미널)
+cd frontend && npm install && npm run dev
 ```
 
-## 기술 스택
+### 테스트
 
-![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
-![LangChain](https://img.shields.io/badge/LangChain-1.2-1C3C3C?logo=langchain&logoColor=white)
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991?logo=openai&logoColor=white)
-![ChromaDB](https://img.shields.io/badge/ChromaDB-1.5-orange)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.39-FF4B4B?logo=streamlit&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+```bash
+pytest tests/ -v  # 61개 단위 테스트
+```
+
+### RAG 평가
+
+```bash
+python -m evaluation.evaluate --no-llm-judge  # 키워드 포함률만
+python -m evaluation.evaluate                  # LLM Judge 포함
+```
+
+---
 
 ## 프로젝트 구조
 
 ```
 job-rag-chatbot/
 ├── app/
-│   ├── main.py              # FastAPI 서버 (lifespan으로 RAG 초기화)
-│   ├── api/
-│   │   ├── routes.py        # API 엔드포인트 (query, health, ingest, stats)
-│   │   └── schemas.py       # Pydantic v2 스키마
-│   ├── core/
-│   │   ├── config.py        # pydantic-settings 기반 환경 변수
-│   │   └── embeddings.py    # VectorStore 클래스 (ChromaDB 관리)
-│   ├── rag/
-│   │   ├── chunker.py       # 3가지 청킹 전략 (recursive/semantic/fixed)
-│   │   ├── retriever.py     # HybridRetriever (Vector + BM25 + RRF)
-│   │   ├── reranker.py      # LLM 기반 Reranker
-│   │   └── chain.py         # RAGChain (LCEL 기반)
-│   └── ingestion/
-│       ├── crawler.py       # 샘플 데이터 생성 (30개 채용 공고)
-│       ├── loader.py        # JSON → LangChain Document 변환
-│       └── ingest.py        # 인제스트 파이프라인 (CLI)
-├── frontend/
-│   └── streamlit_app.py     # 채팅 UI
-├── evaluation/
-│   ├── eval_dataset.json    # 25개 평가 질문 세트
-│   └── evaluate.py          # RAGEvaluator (Precision, Recall, MRR, LLM Judge)
-├── experiments/
-│   └── chunking_comparison.py
-├── docker-compose.yml
-├── Dockerfile
-└── requirements.txt
+│   ├── api/            # FastAPI 라우터, Pydantic 스키마
+│   ├── core/           # 설정, 임베딩, 벡터스토어
+│   ├── ingestion/      # 원티드 크롤러, 로더, 청커
+│   └── rag/            # RAG 체인, 하이브리드 검색기, 리랭커
+├── evaluation/         # RAG 평가 시스템 (키워드 포함률, LLM Judge)
+├── frontend/           # React + Spline 3D UI
+├── tests/              # 단위 테스트 61개 (loader, chunker, chain)
+├── data/               # 원티드 채용 공고 데이터 500개
+└── .github/workflows/  # GitHub Actions CI
 ```
-
-## 향후 계획
-
-- [ ] 임베딩 모델 파인튜닝 (한국어 채용 공고 도메인)
-- [ ] 멀티턴 대화 지원 (대화 히스토리 컨텍스트)
-- [ ] 실시간 채용 공고 크롤링 연동 (원티드, 사람인 등)
-- [ ] Hugging Face 로컬 임베딩 지원 (API 비용 제거)
-- [ ] 메타데이터 필터링 (지역, 경력, 기술스택 기반)
