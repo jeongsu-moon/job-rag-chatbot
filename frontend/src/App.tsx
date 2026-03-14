@@ -7,7 +7,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
-import { sendMessage } from './services/gemini';
+import { sendMessageStream } from './services/gemini';
 import { cn } from './lib/utils';
 
 interface Message {
@@ -17,10 +17,10 @@ interface Message {
 }
 
 const EXAMPLES = [
-  'Python 백엔드 개발자 채용 공고 알려줘',
-  'AI 엔지니어에게 요구하는 기술 스택은?',
-  'FastAPI 경험을 요구하는 회사는?',
-  '경력 1~3년차가 지원할 수 있는 공고는?',
+  '백엔드 공고에서 가장 많이 요구하는 기술 분석해줘',
+  '주니어 채용에서 필수 vs 우대 스킬 차이 정리해줘',
+  '원격 근무 가능한 개발 포지션 비율이 어떻게 돼?',
+  '요즘 채용 공고에 AI 관련 요구사항이 얼마나 들어가?',
 ];
 
 export default function App() {
@@ -49,23 +49,24 @@ export default function App() {
     setInput('');
     setIsLoading(true);
 
+    const assistantId = (Date.now() + 1).toString();
+    setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
+
     try {
-      const response = await sendMessage(msg);
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response || '죄송합니다. 응답을 생성하는 중에 문제가 발생했습니다.',
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
+      await sendMessageStream(msg, (token) => {
+        setIsLoading(false);
+        setMessages((prev) =>
+          prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + token } : m))
+        );
+      });
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: '서버와 통신 중 오류가 발생했습니다. FastAPI 서버가 실행 중인지 확인해주세요.',
-        },
-      ]);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, content: '서버와 통신 중 오류가 발생했습니다. FastAPI 서버가 실행 중인지 확인해주세요.' }
+            : m
+        )
+      );
     } finally {
       setIsLoading(false);
     }
@@ -118,10 +119,10 @@ export default function App() {
             <Bot className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">AI 채용 상담사</h3>
+            <h3 className="text-sm font-bold text-white">JobBot</h3>
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] text-emerald-400 font-semibold">온라인</span>
+              <span className="text-[10px] text-emerald-400 font-semibold">online</span>
             </div>
           </div>
         </div>
@@ -191,7 +192,7 @@ export default function App() {
             ))}
           </AnimatePresence>
 
-          {isLoading && (
+          {isLoading && messages[messages.length - 1]?.content === '' && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
