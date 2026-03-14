@@ -7,7 +7,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
-import { sendMessageStream } from './services/gemini';
+import { sendMessageStream, ChatMessage as ApiChatMessage } from './services/gemini';
 import { cn } from './lib/utils';
 
 interface Message {
@@ -52,8 +52,13 @@ export default function App() {
     const assistantId = (Date.now() + 1).toString();
     setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
 
+    const history: ApiChatMessage[] = messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
     try {
-      await sendMessageStream(msg, (token) => {
+      await sendMessageStream(msg, history, (token) => {
         setIsLoading(false);
         setMessages((prev) =>
           prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + token } : m))

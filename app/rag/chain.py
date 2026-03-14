@@ -1,9 +1,10 @@
 from typing import Generator
 
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
+from langchain_core.messages import HumanMessage, AIMessage
 
 from app.core.config import settings
 from app.rag.retriever import HybridRetriever
@@ -91,6 +92,19 @@ def get_llm():
     return ChatOllama(model=settings.LLM_MODEL_LOCAL, temperature=0)
 
 
+def _to_lc_messages(history: list[dict] | None) -> list:
+    """프론트에서 받은 history를 LangChain 메시지 객체로 변환."""
+    if not history:
+        return []
+    result = []
+    for msg in history[-6:]:  # 최근 3턴(6개)만 유지
+        if msg.get("role") == "user":
+            result.append(HumanMessage(content=msg["content"]))
+        elif msg.get("role") == "assistant":
+            result.append(AIMessage(content=msg["content"]))
+    return result
+
+
 class RAGChain:
     """LangChain LCEL 기반 RAG 체인."""
 
@@ -107,6 +121,8 @@ class RAGChain:
 
         prompt = ChatPromptTemplate.from_messages([
             ("system", SYSTEM_PROMPT),
+            MessagesPlaceholder(variable_name="history"),
+            ("human", "{question}"),
         ])
         self.chain = prompt | self.llm | StrOutputParser()
 
@@ -262,7 +278,7 @@ class RAGChain:
 
     def invoke(
         self, question: str, top_k: int = 5, use_reranker: bool = True,
-        full_scan: bool = False,
+        full_scan: bool = False, history: list[dict] | None = None,
     ) -> dict:
         """RAG 체인 실행. 답변 + 소스 + 컨텍스트 반환."""
         if full_scan and not self._is_explanation_question(question):
@@ -279,7 +295,11 @@ class RAGChain:
         context, total_jobs = self._format_context(doc_scores)
         sources = self._build_sources(doc_scores)
 
-        answer = self.chain.invoke({"context": context, "question": question, "total_jobs": total_jobs})
+        lc_history = _to_lc_messages(history)
+        answer = self.chain.invoke({
+            "context": context, "question": question,
+            "total_jobs": total_jobs, "history": lc_history,
+        })
 
         return {
             "answer": answer,
@@ -289,9 +309,9 @@ class RAGChain:
 
     def stream(
         self, question: str, top_k: int = 5, use_reranker: bool = True,
-        full_scan: bool = False,
+        full_scan: bool = False, history: list[dict] | None = None,
     ) -> Generator[str, None, None]:
-        """스트리밍 응답. Streamlit에서 사용."""
+        """스트리밍 응답."""
         if full_scan and not self._is_explanation_question(question):
             keyword = self._extract_job_category(question)
             experience_level = self._extract_experience_level(question)
@@ -304,7 +324,11 @@ class RAGChain:
             doc_scores = self._retrieve_and_rerank(question, top_k, use_reranker)
         context, total_jobs = self._format_context(doc_scores)
 
-        for chunk in self.chain.stream({"context": context, "question": question, "total_jobs": total_jobs}):
+        lc_history = _to_lc_messages(history)
+        for chunk in self.chain.stream({
+            "context": context, "question": question,
+            "total_jobs": total_jobs, "history": lc_history,
+        }):
             yield chunk
 
 

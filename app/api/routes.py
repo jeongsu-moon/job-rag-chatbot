@@ -36,6 +36,7 @@ async def query(request: QueryRequest):
         top_k=request.top_k,
         use_reranker=request.use_reranker,
         full_scan=request.full_scan,
+        history=[m.model_dump() for m in request.history],
     )
 
     sources = [
@@ -65,6 +66,7 @@ async def query_stream(request: QueryRequest):
             top_k=request.top_k,
             use_reranker=request.use_reranker,
             full_scan=request.full_scan,
+            history=[m.model_dump() for m in request.history],
         ):
             yield f"data: {json.dumps({'token': chunk}, ensure_ascii=False)}\n\n"
         yield "data: [DONE]\n\n"

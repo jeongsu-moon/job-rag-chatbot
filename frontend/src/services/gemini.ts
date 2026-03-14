@@ -1,39 +1,25 @@
 const API_URL = 'http://localhost:8000';
 
-interface QueryResponse {
-  answer: string;
-  sources: Array<{
-    company: string;
-    title: string;
-    relevance_score: number | null;
-  }>;
-  processing_time: number;
-}
-
-export async function sendMessage(message: string): Promise<string> {
-  const res = await fetch(`${API_URL}/api/query`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question: message, top_k: 7, use_reranker: true, full_scan: true }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Server error: ${res.status}`);
-  }
-
-  const data: QueryResponse = await res.json();
-
-  return data.answer;
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 export async function sendMessageStream(
   message: string,
+  history: ChatMessage[],
   onToken: (token: string) => void,
 ): Promise<void> {
   const res = await fetch(`${API_URL}/api/query/stream`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question: message, top_k: 7, use_reranker: true, full_scan: true }),
+    body: JSON.stringify({
+      question: message,
+      top_k: 7,
+      use_reranker: true,
+      full_scan: true,
+      history,
+    }),
   });
 
   if (!res.ok) {
