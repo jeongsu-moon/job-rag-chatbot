@@ -62,10 +62,21 @@ class VectorStore:
             self.load_store()
         return self._store.similarity_search_with_score(query, k=k)
 
+    def get_all_documents(self) -> list[Document]:
+        """ChromaDB에 저장된 모든 문서를 반환합니다."""
+        if self._store is None:
+            self.load_store()
+        result = self._store._collection.get(include=["documents", "metadatas"])
+        docs = []
+        for content, metadata in zip(result["documents"], result["metadatas"]):
+            docs.append(Document(page_content=content, metadata=metadata or {}))
+        return docs
+
     def add_documents(self, documents: list[Document]):
         """기존 DB에 문서를 추가합니다."""
         if self._store is None:
             self.load_store()
+        documents = self._sanitize_metadata(documents)
         self._store.add_documents(documents)
 
 

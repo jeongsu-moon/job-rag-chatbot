@@ -11,6 +11,7 @@ class QueryRequest(BaseModel):
     question: str
     top_k: int = 5
     use_reranker: bool = True
+    full_scan: bool = False
 
 
 class QueryResponse(BaseModel):

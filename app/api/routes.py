@@ -1,6 +1,8 @@
 import time
+import json
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 
 from app.api.schemas import (
     QueryRequest,
@@ -33,6 +35,7 @@ async def query(request: QueryRequest):
         question=request.question,
         top_k=request.top_k,
         use_reranker=request.use_reranker,
+        full_scan=request.full_scan,
     )
 
     sources = [
@@ -49,6 +52,24 @@ async def query(request: QueryRequest):
         sources=sources,
         processing_time=round(time.time() - start, 2),
     )
+
+
+@router.post("/query/stream")
+async def query_stream(request: QueryRequest):
+    """스트리밍 응답: 토큰 생성되는 대로 실시간 전송 (SSE)"""
+    chain = get_rag_chain()
+
+    def generate():
+        for chunk in chain.stream(
+            question=request.question,
+            top_k=request.top_k,
+            use_reranker=request.use_reranker,
+            full_scan=request.full_scan,
+        ):
+            yield f"data: {json.dumps({'token': chunk}, ensure_ascii=False)}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -93,7 +114,7 @@ async def ingest():
 
     retriever = HybridRetriever(vectorstore=vectorstore, documents=chunks)
     reranker = SimpleReranker()
-    rag_chain = RAGChain(retriever=retriever, reranker=reranker)
+    rag_chain = RAGChain(retriever=retriever, reranker=reranker, vector_store=vector_store)
 
     return {"status": "ok", "documents": len(docs), "chunks": len(chunks)}
 

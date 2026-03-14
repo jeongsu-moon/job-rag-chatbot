@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     retriever = HybridRetriever(vectorstore=vectorstore, documents=chunks)
     reranker = SimpleReranker()
 
-    routes.rag_chain = RAGChain(retriever=retriever, reranker=reranker)
+    routes.rag_chain = RAGChain(retriever=retriever, reranker=reranker, vector_store=store)
     routes.vector_store = store
 
     print(f"RAG 체인 초기화 완료 (문서: {len(docs)}, 청크: {len(chunks)})")

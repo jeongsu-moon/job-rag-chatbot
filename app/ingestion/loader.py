@@ -16,12 +16,19 @@ class JobLoader:
             self.raw_data = json.load(f)
         return self.raw_data
 
+    @staticmethod
+    def _to_str(value) -> str:
+        """리스트 또는 문자열을 그대로 문자열로 변환합니다."""
+        if isinstance(value, list):
+            return "\n".join(f"  - {v}" for v in value)
+        return str(value) if value else ""
+
     def _format_content(self, item: dict) -> str:
         """채용 공고 데이터를 하나의 포맷팅된 문자열로 변환합니다."""
-        main_tasks = "\n".join(f"  - {t}" for t in item.get("main_tasks", []))
-        requirements = "\n".join(f"  - {r}" for r in item.get("requirements", []))
-        preferred = "\n".join(f"  - {p}" for p in item.get("preferred", []))
-        tech_stack = ", ".join(item.get("tech_stack", []))
+        main_tasks = self._to_str(item.get("main_tasks", ""))
+        requirements = self._to_str(item.get("requirements", ""))
+        preferred = self._to_str(item.get("preferred", ""))
+        tech_stack = ", ".join(item.get("tech_stack", []) if isinstance(item.get("tech_stack"), list) else [])
 
         return (
             f"회사: {item.get('company', '')}\n"

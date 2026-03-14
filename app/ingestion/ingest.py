@@ -50,11 +50,34 @@ def main():
     chunks = chunker.chunk(documents)
     print(f"  → {len(chunks)}개 청크 생성 완료")
 
-    # 3. 임베딩 + ChromaDB 저장
+    # 3. 임베딩 + ChromaDB 저장 (배치 처리)
     print(f"[3/3] 임베딩 및 ChromaDB 저장...")
     start = time.time()
     store = VectorStore()
-    store.create_store(chunks)
+
+    batch_size = 500
+    total = len(chunks)
+
+    for i in range(0, total, batch_size):
+        batch = chunks[i:i + batch_size]
+        attempt = 0
+        while attempt < 5:
+            try:
+                if i == 0:
+                    store.create_store(batch)
+                else:
+                    store.add_documents(batch)
+                print(f"  → [{i + len(batch)}/{total}] 저장 완료")
+                break
+            except Exception as e:
+                if "429" in str(e) or "rate" in str(e).lower():
+                    wait = 30 * (attempt + 1)
+                    print(f"  ⏳ Rate limit - {wait}초 대기 후 재시도...")
+                    time.sleep(wait)
+                    attempt += 1
+                else:
+                    raise
+
     elapsed = time.time() - start
     print(f"  → ChromaDB 저장 완료 ({elapsed:.1f}초)")
 
