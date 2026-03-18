@@ -6,9 +6,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
-COPY frontend/ ./frontend/
-COPY data/ ./data/
-COPY evaluation/ ./evaluation/
+COPY data/sample_jobs.json ./data/sample_jobs.json
+COPY chroma_db/ ./chroma_db/
 
 EXPOSE 8000
 

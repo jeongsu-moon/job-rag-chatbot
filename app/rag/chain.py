@@ -180,13 +180,14 @@ class RAGChain:
 
     # 질문에서 직군 키워드를 탐지하기 위한 매핑
     JOB_CATEGORY_KEYWORDS: dict[str, list[str]] = {
-        "백엔드": ["백엔드", "backend", "서버", "server"],
-        "프론트엔드": ["프론트엔드", "프론트", "frontend", "front-end"],
-        "데이터": ["데이터 엔지니어", "데이터 사이언티스트", "data engineer", "data scientist", "ML엔지니어", "머신러닝"],
-        "DevOps": ["devops", "sre", "인프라", "클라우드", "cloud"],
+        "백엔드": ["백엔드", "backend", "back-end", "back end", "서버", "server", "spring", "django", "fastapi", "rails", "laravel"],
+        "프론트엔드": ["프론트엔드", "프론트", "frontend", "front-end", "front end", "웹 개발", "web 개발", "react", "vue", "angular", "퍼블리"],
+        "데이터": ["데이터 엔지니어", "데이터 사이언티스트", "data engineer", "data scientist", "ML엔지니어", "머신러닝", "machine learning", "데이터 분석"],
+        "AI": ["ai ", "llm", "인공지능", "머신러닝 엔지니어", "ml engineer", "딥러닝", "deep learning", "nlp", "computer vision"],
+        "DevOps": ["devops", "sre", "인프라", "클라우드", "cloud", "platform engineer", "시스템 엔지니어"],
         "모바일": ["모바일", "ios", "android", "앱 개발", "flutter", "react native"],
-        "풀스택": ["풀스택", "full stack", "fullstack"],
-        "임베디드": ["임베디드", "embedded", "펌웨어"],
+        "풀스택": ["풀스택", "full stack", "fullstack", "full-stack"],
+        "임베디드": ["임베디드", "embedded", "펌웨어", "firmware"],
     }
 
     # 경력 수준 키워드 → 경력 필드 매칭 패턴
@@ -241,8 +242,8 @@ class RAGChain:
         q = question.lower()
         return any(p in q for p in self.ANALYSIS_PATTERNS)
 
-    def _full_scan_docs(self, keyword: str | None = None, experience_level: str | None = None) -> list[tuple[Document, float]]:
-        """원본 JSON에서 공고를 직접 읽어 반환. keyword가 있으면 title로 필터링."""
+    def _full_scan_docs(self, keywords: list[str] | None = None, experience_level: str | None = None) -> list[tuple[Document, float]]:
+        """원본 JSON에서 공고를 직접 읽어 반환. keywords가 있으면 title로 필터링."""
         import json
 
         data_path = "data/sample_jobs.json"
@@ -266,8 +267,10 @@ class RAGChain:
             title = job.get("title", "")
             experience = job.get("experience", "")
 
-            if keyword and keyword.lower() not in title.lower():
-                continue
+            if keywords:
+                title_lower = title.lower()
+                if not any(kw.lower() in title_lower for kw in keywords):
+                    continue
 
             if experience_level == "junior" and not any(p in experience for p in junior_patterns):
                 continue
@@ -296,12 +299,13 @@ class RAGChain:
         full_scan: bool = False, history: list[dict] | None = None,
     ) -> dict:
         """RAG 체인 실행. 답변 + 소스 + 컨텍스트 반환."""
-        if full_scan and self._is_analysis_question(question):
+        category = self._extract_job_category(question)
+        if full_scan and (category or self._is_analysis_question(question)):
             # 통계/분석 → Full Scan (정확한 카운팅을 위해 전체 데이터 필요)
-            keyword = self._extract_job_category(question)
+            keywords = self.JOB_CATEGORY_KEYWORDS.get(category) if category else None
             experience_level = self._extract_experience_level(question)
-            docs = self._full_scan_docs(keyword=keyword, experience_level=experience_level)
-            if not keyword and not experience_level and len(docs) > 80:
+            docs = self._full_scan_docs(keywords=keywords, experience_level=experience_level)
+            if not keywords and not experience_level and len(docs) > 80:
                 doc_scores = self._retrieve_and_rerank(question, top_k, use_reranker)
             else:
                 doc_scores = docs
@@ -328,12 +332,13 @@ class RAGChain:
         full_scan: bool = False, history: list[dict] | None = None,
     ) -> Generator[str, None, None]:
         """스트리밍 응답."""
-        if full_scan and self._is_analysis_question(question):
+        category = self._extract_job_category(question)
+        if full_scan and (category or self._is_analysis_question(question)):
             # 통계/분석 → Full Scan
-            keyword = self._extract_job_category(question)
+            keywords = self.JOB_CATEGORY_KEYWORDS.get(category) if category else None
             experience_level = self._extract_experience_level(question)
-            docs = self._full_scan_docs(keyword=keyword, experience_level=experience_level)
-            if not keyword and not experience_level and len(docs) > 80:
+            docs = self._full_scan_docs(keywords=keywords, experience_level=experience_level)
+            if not keywords and not experience_level and len(docs) > 80:
                 doc_scores = self._retrieve_and_rerank(question, top_k, use_reranker)
             else:
                 doc_scores = docs

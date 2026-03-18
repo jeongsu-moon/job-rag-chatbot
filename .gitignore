@@ -1,8 +1,8 @@
 .env
 __pycache__/
-chroma_db/
 data/*.json
 !data/.gitkeep
+!data/sample_jobs.json
 *.pyc
 .venv/
 evaluation/results.json
